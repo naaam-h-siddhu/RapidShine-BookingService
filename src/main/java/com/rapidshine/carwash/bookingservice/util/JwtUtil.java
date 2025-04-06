@@ -1,6 +1,6 @@
 package com.rapidshine.carwash.bookingservice.util;
 
-import com.rapidshine.carwash.user_service.exceptions.InvalidJwtTokenException;
+import com.rapidshine.carwash.bookingservice.exceptions.InvalidJwtTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

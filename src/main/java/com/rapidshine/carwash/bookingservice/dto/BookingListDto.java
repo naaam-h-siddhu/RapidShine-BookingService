@@ -1,13 +1,14 @@
 package com.rapidshine.carwash.bookingservice.dto;
 
-import com.rapidshine.carwash.bookingservice.model.BookingStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookingRequestDto {
-    BookingStatus bookingStatus;
+public class BookingListDto {
+    List<BookingResponseDto> bookingResponseDtoList;
 }

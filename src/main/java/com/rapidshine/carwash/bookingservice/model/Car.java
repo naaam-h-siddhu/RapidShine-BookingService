@@ -40,4 +40,10 @@ public class Car {
     @JsonManagedReference
     private List<Booking> bookings = new ArrayList<>();
 
+    public Car(Long carId, String brand, String model, String licenceNumberPlate) {
+        this.carId = carId;
+        this.brand = brand;
+        this.model  = model;
+        this.licenceNumberPlate = licenceNumberPlate;
+    }
 }

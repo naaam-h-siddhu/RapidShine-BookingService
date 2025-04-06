@@ -1,5 +1,5 @@
 package com.rapidshine.carwash.bookingservice.model;
 
-public enum PaymentStatus {
+public enum PaymentStatus   {
     PAID,UNPAID
 }

@@ -19,6 +19,7 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
     private LocalDateTime bookingTime;
+
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
 
@@ -35,5 +36,8 @@ public class Booking {
 
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Payment payment;
+
+
+
 
 }

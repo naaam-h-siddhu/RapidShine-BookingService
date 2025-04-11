@@ -130,7 +130,16 @@ public class BookingService {
 
     }
     // helper function to get the customer using the email
+    private Customer getCustomer(String email) throws Exception {
 
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User with "+email+" not " +
+                "found"));
+        Long id = user.getId();
+        Customer customer = customerRepository.findByUserId(id).orElseThrow(() -> new UserNotFoundException("Customer " +
+                "with " + email + " not found"));
+        return customer;
+
+    }
 
 
 

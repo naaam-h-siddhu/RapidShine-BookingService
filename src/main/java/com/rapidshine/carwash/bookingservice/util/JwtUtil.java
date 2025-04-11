@@ -59,7 +59,13 @@ public class JwtUtil {
         return extractClaims(token).getExpiration().before(new Date());
     }
 
-    public boolean validateToken(String token, String email) {
-        return (email.equals(extractEmail(token)) && !isTokenExpired(token));
+    public String extractRole(String token){
+        return extractClaims(token).get("role",String.class);
     }
+
+    // here I have validated the role if it is customer is not because car can only be accessed by the customer
+    public boolean validateToken(String token,String email){
+        return (email.equals(extractEmail(token)) && extractRole(token).equals("CUSTOMER") && !isTokenExpired(token));
+    }
+
 }

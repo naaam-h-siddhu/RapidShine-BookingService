@@ -19,6 +19,6 @@ public class BookingResponseDto {
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
     private CarDto carDto;
-    private Payment payment;
+    private PaymentResponseDto payment;
 }
 

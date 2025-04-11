@@ -29,6 +29,7 @@ public class Booking {
     private Customer customer;
 
 
+
     @ManyToOne
     @JoinColumn(name = "car_id")
     @JsonBackReference
@@ -36,6 +37,8 @@ public class Booking {
 
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Payment payment;
+
+
 
 
 

@@ -35,7 +35,8 @@ public class BookingService {
 
         Booking booking = new Booking();
         booking.setBookingStatus(bookingRequestDto.getBookingStatus());
-        booking.setBookingTime(LocalDateTime.now());
+        booking.setBookingTime(LocalDateTime.now());//Todo->  we can also check the washer if he/she is free or not at
+        //todo ->  the given time
         booking.setCustomer(customer);
         booking.setCar(new Car(car.getCarId(), car.getModel(), car.getModel(), car.getLicenceNumberPlate()));
         booking = bookingRepository.save(booking);
@@ -43,7 +44,16 @@ public class BookingService {
         payment.setBooking(booking);
         payment.setPaymentMethod(PaymentMethod.CASH);
         payment.setPaymentStatus(PaymentStatus.PAID);
+
+
+        //TODO Implement the payment service and use rabbitMQ/ Client to use that service
         if(payment.getPaymentStatus() == PaymentStatus.PAID){
+            /* TODO if the payment is done then assign the washer using the washer service
+                1.Use washer client to get(/washer/available)-> it will return a available washer
+                2. Use rabbitMQ to update status (washer/updateStatus)-> Mark isAvailable = False
+
+             */
+
             booking.setBookingStatus(BookingStatus.CONFIRMED);
         }
         else{
@@ -55,7 +65,8 @@ public class BookingService {
         bookingResponseDto.setBookingTime(booking.getBookingTime());
         bookingResponseDto.setBookingStatus(booking.getBookingStatus());
         bookingResponseDto.setCarDto(new CarDto(car.getCarId(),car.getBrand(),car.getModel(),car.getLicenceNumberPlate()));
-        bookingResponseDto.setPayment(payment);
+        bookingResponseDto.setPayment(new PaymentResponseDto(payment.getPaymentId(),payment.getPaymentMethod(),
+                payment.getPaymentStatus()));
         return bookingResponseDto;
     }
     public CarListDto getAllCars(){
@@ -70,8 +81,8 @@ public class BookingService {
         }
         CarDto car = carClient.getCarById(booking.getCar().getCarId());
         return new BookingResponseDto(booking.getBookingId(), booking.getBookingTime(),booking.getBookingStatus(),
-                car,
-                booking.getPayment() );
+                car, new PaymentResponseDto(booking.getPayment().getPaymentId(),
+                booking.getPayment().getPaymentMethod(),booking.getPayment().getPaymentStatus()));
 
     }
 
@@ -92,7 +103,8 @@ public class BookingService {
                     booking.getBookingTime(),
                     booking.getBookingStatus(),
                     carDto,
-                    booking.getPayment()
+                    new PaymentResponseDto(booking.getPayment().getPaymentId(),
+                            booking.getPayment().getPaymentMethod(),booking.getPayment().getPaymentStatus())
             );
         }).collect(Collectors.toList());
 
@@ -113,20 +125,11 @@ public class BookingService {
         return new BookingResponseDto(booking.getBookingId(), booking.getBookingTime(),booking.getBookingStatus(),
                 new CarDto(booking.getCar().getCarId(),booking.getCar().getBrand(),booking.getCar().getModel(),
                         booking.getCar().getLicenceNumberPlate()),
-                booking.getPayment() );
+                new PaymentResponseDto(booking.getPayment().getPaymentId(),
+                        booking.getPayment().getPaymentMethod(),booking.getPayment().getPaymentStatus()));
 
     }
     // helper function to get the customer using the email
-    private Customer getCustomer(String email) throws Exception {
-
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User with "+email+" not " +
-                "found"));
-        Long id = user.getId();
-        Customer customer = customerRepository.findByUserId(id).orElseThrow(() -> new UserNotFoundException("Customer " +
-                "with " + email + " not found"));
-        return customer;
-
-    }
 
 
 

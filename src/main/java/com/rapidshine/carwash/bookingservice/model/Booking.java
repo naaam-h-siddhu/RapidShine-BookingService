@@ -37,6 +37,7 @@ public class Booking {
 
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Payment payment;
+    private String washerEmail;
 
 
 

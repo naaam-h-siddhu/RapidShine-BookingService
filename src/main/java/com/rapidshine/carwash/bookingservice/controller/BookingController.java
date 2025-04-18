@@ -2,7 +2,9 @@ package com.rapidshine.carwash.bookingservice.controller;
 
 import com.rapidshine.carwash.bookingservice.dto.*;
 import com.rapidshine.carwash.bookingservice.service.BookingService;
+import com.rapidshine.carwash.bookingservice.service.WasherStatusPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,8 @@ public class BookingController {
     @Autowired
     private BookingService bookingService;
 
+    @Autowired
+    private WasherStatusPublisher washerStatusPublisher;
     @PostMapping("/car/{id}")
     public BookingResponseDto bookCarWash(Authentication authentication,
                                           @RequestBody BookingRequestDto bookingRequestDto,
@@ -48,4 +52,7 @@ public class BookingController {
     public String assign(){
         return bookingService.assignWasher();
     }
+
+
+
 }

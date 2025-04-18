@@ -12,13 +12,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
+    // Washer status updates (Booking → Washer)
     public static final String WASHER_STATUS_QUEUE = "washer.status.update.queue";
     public static final String WASHER_STATUS_EXCHANGE = "washer.status.update.exchange";
     public static final String WASHER_STATUS_ROUTING_KEY = "washer.status.update";
 
+    // Job completion updates (Washer → Booking)
+    public static final String JOB_COMPLETION_QUEUE = "job.completion.update.queue";
+    public static final String JOB_COMPLETION_EXCHANGE = "job.completion.exchange";
+    public static final String JOB_COMPLETION_ROUTING_KEY = "job.completion.update";
+
+    // Washer status beans
     @Bean
     public Queue washerStatusQueue() {
-        return new Queue(WASHER_STATUS_QUEUE, true); // durable = true
+        return new Queue(WASHER_STATUS_QUEUE, true);
     }
 
     @Bean
@@ -33,6 +40,26 @@ public class RabbitMQConfig {
                 .to(washerStatusExchange())
                 .with(WASHER_STATUS_ROUTING_KEY);
     }
+
+    // Job completion beans
+    @Bean
+    public Queue jobCompletionQueue() {
+        return new Queue(JOB_COMPLETION_QUEUE, true);
+    }
+
+    @Bean
+    public TopicExchange jobCompletionExchange() {
+        return new TopicExchange(JOB_COMPLETION_EXCHANGE);
+    }
+
+    @Bean
+    public Binding jobCompletionBinding() {
+        return BindingBuilder
+                .bind(jobCompletionQueue())
+                .to(jobCompletionExchange())
+                .with(JOB_COMPLETION_ROUTING_KEY);
+    }
+
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();

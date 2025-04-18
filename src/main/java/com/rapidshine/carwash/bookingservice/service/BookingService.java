@@ -3,17 +3,23 @@ package com.rapidshine.carwash.bookingservice.service;
 import com.rapidshine.carwash.bookingservice.dto.*;
 import com.rapidshine.carwash.bookingservice.exceptions.UserNotFoundException;
 import com.rapidshine.carwash.bookingservice.feign.CarServiceClient;
+import com.rapidshine.carwash.bookingservice.feign.WasherServiceClient;
 import com.rapidshine.carwash.bookingservice.model.*;
 import com.rapidshine.carwash.bookingservice.repository.BookingRepository;
 import com.rapidshine.carwash.bookingservice.repository.CustomerRepository;
+import com.rapidshine.carwash.bookingservice.repository.PaymentRepository;
 import com.rapidshine.carwash.bookingservice.repository.UserRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.Schedules;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.awt.print.Book;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +34,14 @@ public class BookingService {
     private BookingRepository bookingRepository;
     @Autowired
     private CarServiceClient carClient;
+    @Autowired
+    private PaymentRepository paymentRepository;
+    @Autowired
+    private WasherServiceClient washerServiceClient;
+    @Autowired
+    private WasherStatusPublisher washerStatusPublisher;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
     public BookingResponseDto book(String email,BookingRequestDto bookingRequestDto,Long id) throws Exception {
 
         Customer customer = getCustomer(email);
@@ -35,39 +49,22 @@ public class BookingService {
 
         Booking booking = new Booking();
         booking.setBookingStatus(bookingRequestDto.getBookingStatus());
-        booking.setBookingTime(LocalDateTime.now());//Todo->  we can also check the washer if he/she is free or not at
-        //todo ->  the given time
+        booking.setBookingTime(LocalDateTime.now());
         booking.setCustomer(customer);
         booking.setCar(new Car(car.getCarId(), car.getModel(), car.getModel(), car.getLicenceNumberPlate()));
+        booking.setBookingStatus(BookingStatus.PENDING);
         booking = bookingRepository.save(booking);
+
         Payment payment = new Payment();
         payment.setBooking(booking);
         payment.setPaymentMethod(PaymentMethod.CASH);
         payment.setPaymentStatus(PaymentStatus.PAID);
-
-
+        payment.setBooking(booking);
+        paymentRepository.save(payment);
         //TODO Implement the payment service and use rabbitMQ/ Client to use that service
-        if(payment.getPaymentStatus() == PaymentStatus.PAID){
-            /* TODO if the payment is done then assign the washer using the washer service
-                1.Use washer client to get(/washer/available)-> it will return a available washer
-                2. Use rabbitMQ to update status (washer/updateStatus)-> Mark isAvailable = False
 
-             */
-
-            booking.setBookingStatus(BookingStatus.CONFIRMED);
-        }
-        else{
-            booking.setBookingStatus(BookingStatus.CANCELLED);
-        }
         bookingRepository.save(booking);
-        BookingResponseDto bookingResponseDto = new BookingResponseDto();
-        bookingResponseDto.setBookingId(booking.getBookingId());
-        bookingResponseDto.setBookingTime(booking.getBookingTime());
-        bookingResponseDto.setBookingStatus(booking.getBookingStatus());
-        bookingResponseDto.setCarDto(new CarDto(car.getCarId(),car.getBrand(),car.getModel(),car.getLicenceNumberPlate()));
-        bookingResponseDto.setPayment(new PaymentResponseDto(payment.getPaymentId(),payment.getPaymentMethod(),
-                payment.getPaymentStatus()));
-        return bookingResponseDto;
+        return getBookingResponseDto(booking);
     }
     public CarListDto getAllCars(){
         return carClient.getCars();
@@ -79,10 +76,7 @@ public class BookingService {
         if (customer.getCustomerID() != booking.getCustomer().getCustomerID()) {
             throw new RuntimeException("You do not have any access to this booking ");
         }
-        CarDto car = carClient.getCarById(booking.getCar().getCarId());
-        return new BookingResponseDto(booking.getBookingId(), booking.getBookingTime(),booking.getBookingStatus(),
-                car, new PaymentResponseDto(booking.getPayment().getPaymentId(),
-                booking.getPayment().getPaymentMethod(),booking.getPayment().getPaymentStatus()));
+        return getBookingResponseDto(booking);
 
     }
 
@@ -121,12 +115,12 @@ public class BookingService {
         }
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
+        if(booking.getBookingStatus() == BookingStatus.CONFIRMED) {
+
+            washerStatusPublisher.updateWashwerStatus(booking.getWasherEmail(), true);
+        }
         bookingRepository.save(booking);
-        return new BookingResponseDto(booking.getBookingId(), booking.getBookingTime(),booking.getBookingStatus(),
-                new CarDto(booking.getCar().getCarId(),booking.getCar().getBrand(),booking.getCar().getModel(),
-                        booking.getCar().getLicenceNumberPlate()),
-                new PaymentResponseDto(booking.getPayment().getPaymentId(),
-                        booking.getPayment().getPaymentMethod(),booking.getPayment().getPaymentStatus()));
+        return getBookingResponseDto(booking);
 
     }
     // helper function to get the customer using the email
@@ -139,6 +133,49 @@ public class BookingService {
                 "with " + email + " not found"));
         return customer;
 
+    }
+
+
+
+    //Todo = testing it now , make it scheduled after testing
+//    @Scheduled(fixedRate = 30000)
+    public String assignWasher(){
+        StringBuilder stringBuilder = new StringBuilder();
+        List<Booking> unassignedBookings = bookingRepository.findByBookingStatus(BookingStatus.PENDING);
+
+        if(unassignedBookings.isEmpty()){
+            return stringBuilder.append("No booking left for assignment").toString();
+
+
+        }
+        List<Washer> washers = washerServiceClient.getAvailableWasher();
+        if(washers.isEmpty()){
+            return stringBuilder.append("No washer left for assignment").toString();
+
+        }
+        Random random = new Random();
+        for(Booking booking1 : unassignedBookings){
+
+            Washer washer = washers.get(random.nextInt(washers.size()));
+            booking1.setWasherEmail(washer.getEmail());
+            booking1.setBookingStatus(BookingStatus.CONFIRMED);
+            bookingRepository.save(booking1);
+            washerStatusPublisher.updateWashwerStatus(washer.getEmail(),false);
+            stringBuilder.append(booking1.getBookingId()+washer.getEmail()+"\n");
+
+        }
+        return stringBuilder.toString();
+
+
+    }
+    private BookingResponseDto getBookingResponseDto(Booking booking){
+        BookingResponseDto bookingResponseDto = new BookingResponseDto();
+        bookingResponseDto.setBookingId(booking.getBookingId());
+        bookingResponseDto.setBookingTime(booking.getBookingTime());
+        bookingResponseDto.setBookingStatus(booking.getBookingStatus());
+        bookingResponseDto.setCarDto(carClient.getCarById(booking.getCar().getCarId()));
+        bookingResponseDto.setPayment(new PaymentResponseDto(100L, PaymentMethod.CASH, PaymentStatus.PAID));
+        return bookingResponseDto;
     }
 
 

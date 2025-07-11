@@ -1,6 +1,5 @@
 package com.rapidshine.carwash.bookingservice.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,11 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CarDto {
-    private Long carId;
-    private String brand;
-    private String model;
-    private String licenceNumberPlate;
-    private String carType;
-
+public class TokenResponse {
+    private  String access_token;
+    private String token_type;
+    private long expires_in;
 }

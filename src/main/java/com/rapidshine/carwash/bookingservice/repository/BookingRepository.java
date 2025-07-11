@@ -16,7 +16,14 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
 
     List<Booking> findByBookingStatus(BookingStatus bookingStatus);
 
-    @Query("SELECT b FROM Booking b WHERE b.washerEmail = :email AND b.bookingStatus <> 'COMPLETED'")
+    @Query("SELECT b FROM Booking b WHERE b.washerEmail = :email AND b.bookingStatus <> 'COMPLETED' AND b.bookingStatus <> 'CANCELLED'")
     Optional<Booking> findByBookingByWasherEmail(String email);
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.customer.customerID = :customerId")
+    int countByCustomerId(@Param("customerId") Long customerId);
+
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.customer.customerID = :customerId AND b.bookingStatus = :status")
+    int countByCustomerIdAndBookingStatus(@Param("customerId") Long customerId, @Param("status") BookingStatus status);
+
+
 
 }

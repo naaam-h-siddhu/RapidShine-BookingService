@@ -2,14 +2,13 @@ package com.rapidshine.carwash.bookingservice.controller;
 
 import com.rapidshine.carwash.bookingservice.dto.*;
 import com.rapidshine.carwash.bookingservice.service.BookingService;
-import com.rapidshine.carwash.bookingservice.service.WasherStatusPublisher;
+import com.rapidshine.carwash.bookingservice.messaging.rabbitmq.WasherStatusPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/booking")
@@ -22,9 +21,9 @@ public class BookingController {
     private WasherStatusPublisher washerStatusPublisher;
     @PostMapping("/car/{id}")
     public BookingResponseDto bookCarWash(Authentication authentication,
-                                          @RequestBody BookingRequestDto bookingRequestDto,
+
                                           @PathVariable Long id) throws Exception {
-        BookingResponseDto bookingResponseDto = bookingService.book(authentication.getName(), bookingRequestDto, id);
+        BookingResponseDto bookingResponseDto = bookingService.book(authentication.getName(), id);
         return bookingResponseDto;
     }
 
@@ -34,8 +33,8 @@ public class BookingController {
     }
 
     @GetMapping("/car")
-    public CarListDto getCars() {
-        return bookingService.getAllCars();
+    public CarListDto getCars(Authentication authentication) throws Exception {
+        return bookingService.getAllCars(authentication.getName());
     }
 
     @GetMapping("/")
@@ -48,11 +47,32 @@ public class BookingController {
         return bookingService.cancelBooking(authentication.getName(), id);
     }
 
-    @GetMapping("/assign")
-    public String assign(){
-        return bookingService.assignWasher();
+    //    @GetMapping("/assign")
+    //    public String assign(){
+    //        return bookingService.assignWasher();
+    //    }
+
+    @GetMapping("/get_payment_url/{id}")
+    public BookingResponseDto getPaymentUrl(Authentication authentication,@PathVariable Long id) throws Exception{
+        return bookingService.getPaymentUrl(authentication.getName(),id);
     }
 
+    @GetMapping("/get_washer/{id}")
+    public String getWasher(Authentication authentication,@PathVariable Long id) throws  Exception{
+        return bookingService.getWasher(authentication.getName(),id);
+    }
+    @GetMapping("/dashboard/summary")
+    public ResponseEntity<Map<String, Integer>> getCustomerBookingSummary(Authentication authentication) throws Exception {
 
+        return bookingService.getBookingSummary(authentication.getName());
+    }
 
+    //internal endpoint for checking if the washer is working or not
+    @GetMapping("/isWorking")
+    public boolean isWorking(@RequestParam String email){
+        System.out.println("BABY ZINDA HAI ......");
+
+        return bookingService.checkIfWasherIsWorking( email);
+
+    }
 }

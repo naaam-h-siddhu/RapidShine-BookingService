@@ -19,29 +19,25 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookingId;
     private LocalDateTime bookingTime;
-
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
+    private String washerEmail;
+    private double amount;
+    private LocalDateTime bookingCompletedAt;
+
+
+
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
     @JsonBackReference
     private Customer customer;
-
-
-
     @ManyToOne
     @JoinColumn(name = "car_id")
     @JsonBackReference
     private Car car;
-
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Payment payment;
-    private String washerEmail;
-
-
-
-
 
 
 }

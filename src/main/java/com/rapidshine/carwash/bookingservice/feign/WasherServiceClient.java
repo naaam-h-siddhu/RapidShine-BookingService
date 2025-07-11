@@ -5,11 +5,13 @@ import com.rapidshine.carwash.bookingservice.config.FeignInternalServiceTokenCon
 import com.rapidshine.carwash.bookingservice.model.Washer;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
-@FeignClient(name = "washer-service",configuration = FeignInternalServiceTokenConfig.class)
+@FeignClient(name = "washer-service",configuration = FeignClientConfig.class)
 public interface WasherServiceClient {
+
     @GetMapping("/washer/available")
-    List<Washer> getAvailableWasher();
+    List<Washer> getListOfWasher();
 }

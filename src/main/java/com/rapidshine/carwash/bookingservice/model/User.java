@@ -27,10 +27,16 @@ public class User {
     @OneToOne(mappedBy = "user",cascade = CascadeType.ALL)
     @JsonIgnore
     private Customer customer;
+
+    @OneToOne(mappedBy = "user",cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Washer washer;
     private String address;
     private String phoneNumber;
+    private String auth;
 
-    public User(String name, String email, String phoneNumber, String password, UserRole userRole, String address) {
+    public User(String name, String email,String phoneNumber, String password, UserRole userRole,String address,
+                String auth) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -38,6 +44,6 @@ public class User {
         this.timestamp = LocalDateTime.now();
         this.address = address;
         this.phoneNumber = phoneNumber;
-
+        this.auth = auth;
     }
 }

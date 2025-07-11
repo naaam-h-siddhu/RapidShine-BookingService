@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>C:/Users/sudhaksi/OneDrive - Capgemini/Desktop/Logs-carwash/Logs-carwash/logging-aspect.txt</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Only log messages from LoggingAspect -->
+    <logger name="com.rapidshine.carwash.bookingservice.logging.LoggingAspect" level="INFO" additivity="false">
+        <appender-ref ref="FILE"/>
+    </logger>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.rapidshine.carwash.bookingservice.logging.LoggingAspect" level="INFO" additivity="false">
+<!--        <appender-ref ref="CONSOLE"/>-->
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

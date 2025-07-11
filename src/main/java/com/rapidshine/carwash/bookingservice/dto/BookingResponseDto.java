@@ -20,5 +20,15 @@ public class BookingResponseDto {
     private BookingStatus bookingStatus;
     private CarDto carDto;
     private PaymentResponseDto payment;
+    private  String paymentLink;
+
+    public BookingResponseDto(Long bookingId, LocalDateTime bookingTime, BookingStatus bookingStatus, CarDto carDto, PaymentResponseDto paymentResponseDto) {
+        this.bookingId = bookingId;
+        this.bookingTime = bookingTime;
+        this.bookingStatus = bookingStatus;
+        this.carDto = carDto;
+        this.payment = paymentResponseDto;
+
+    }
 }
 

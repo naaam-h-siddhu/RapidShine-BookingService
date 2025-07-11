@@ -35,13 +35,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/booking/dashboard/**").hasRole("CUSTOMER")
+                        .requestMatchers("booking/isWorking").hasRole("M2M")
                         .requestMatchers("/booking/assign").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+//                        .authenticationEntryPoint(new CustomAuthenticationEntryPoint))
                 );
+//        Todo: Implement the jwt invalid exception if the role is different and other exception
+
 
         return http.build();
     }
@@ -54,6 +59,7 @@ public class SecurityConfig {
 
         JwtAuthenticationConverter authConverter = new JwtAuthenticationConverter();
         authConverter.setJwtGrantedAuthoritiesConverter(converter);
+
         return authConverter;
     }
 

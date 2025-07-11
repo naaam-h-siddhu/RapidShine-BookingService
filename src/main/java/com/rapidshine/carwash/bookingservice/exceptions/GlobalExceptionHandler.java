@@ -1,6 +1,8 @@
 package com.rapidshine.carwash.bookingservice.exceptions;
 
 
+import com.rapidshine.carwash.bookingservice.model.Car;
+import com.rapidshine.carwash.bookingservice.model.Payment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -34,6 +36,21 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeExcpeiton(RuntimeException e){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(e.getMessage(),
+                LocalDateTime.now(),HttpStatus.INTERNAL_SERVER_ERROR    .value()));
+    }
+    @ExceptionHandler(CarUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleCarUnavailableExcpeiton(CarUnavailableException e){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(e.getMessage(),
+                LocalDateTime.now(),HttpStatus.INTERNAL_SERVER_ERROR    .value()));
+    }
+    @ExceptionHandler(WasherUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleWasherUnavailableException(WasherUnavailableException e){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(e.getMessage(),
+                LocalDateTime.now(),HttpStatus.INTERNAL_SERVER_ERROR    .value()));
+    }
+    @ExceptionHandler(PaymentUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentException(PaymentUnavailableException e){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(e.getMessage(),
                 LocalDateTime.now(),HttpStatus.INTERNAL_SERVER_ERROR    .value()));
     }
